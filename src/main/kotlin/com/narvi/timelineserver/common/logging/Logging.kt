@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory
 object Logging {
     fun <T : Any> getLogger(clazz: Class<T>): Logger = LoggerFactory.getLogger(clazz)
 
-    fun <T> logFor(log: Logger, isError: Boolean = false, function: (MutableMap<String, Any>) -> T?): T {
-        val logInfo = mutableMapOf<String, Any>()
+    fun <T> logFor(log: Logger, isError: Boolean = false, function: (MutableMap<String, Any?>) -> T?): T {
+        val logInfo = mutableMapOf<String, Any?>()
         logInfo["start_at"] = now()
 
         val result = function.invoke(logInfo)
@@ -15,9 +15,9 @@ object Logging {
         logInfo["end_at"] = now()
 
         if (isError) {
-            log.info("📌 $logInfo")
-        } else {
             log.error("⚠️ $logInfo")
+        } else {
+            log.info("📌 $logInfo")
         }
 
         return result ?: throw RuntimeException("failed to invoke in logger")

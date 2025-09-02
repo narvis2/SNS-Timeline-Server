@@ -11,10 +11,15 @@ class FollowerStore(
 ) {
 
     fun followUser(followEventMessage: FollowEventMessage) {
-
+        if (followEventMessage.isFollow) {
+            redisTemplate.opsForSet().add("user:follower:${followEventMessage.followerId}", followEventMessage.userId.toString())
+        } else {
+            redisTemplate.opsForSet()
+                .remove("user:follower:${followEventMessage.followerId}", followEventMessage.userId)
+        }
     }
 
     fun listFollower(userId: String): Set<String> {
-        return setOf()
+        return redisTemplate.opsForSet().members("user:follower:${userId}") ?: setOf()
     }
 }

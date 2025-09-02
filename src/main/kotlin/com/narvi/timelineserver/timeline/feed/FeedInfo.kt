@@ -7,6 +7,6 @@ data class FeedInfo(
     val imageId: String,
     val uploaderId: Long,
     val uploaderName: String,
-    val uploadDateTime: ZonedDateTime?,
+    val uploadDateTime: ZonedDateTime,
     val contents: String?,
 )
