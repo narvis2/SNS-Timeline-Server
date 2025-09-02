@@ -13,22 +13,37 @@ class FeedStore(
 ) {
 
     fun savePost(post: FeedInfo) {
+        jsonUtil.toJson(post)?.let { json ->
+            // 정렬가능한 Set
+            redisTemplate.opsForZSet()
+                .add("feed:${post.uploaderId}", json, post.uploadDateTime.toEpochSecond().toDouble())
 
+            redisTemplate.opsForZSet()
+                .add("feed:all", json, post.uploadDateTime.toEpochSecond().toDouble())
+        }
     }
 
     fun allFeed(): List<FeedInfo> {
-        return emptyList()
+        val savedFeeds = redisTemplate.opsForZSet().reverseRange("feed:all", 0 , -1) ?: emptySet()
+        return savedFeeds.mapNotNull { feed ->
+            jsonUtil.fromJson(feed, FeedInfo::class.java)
+        }
     }
 
     fun listFeed(userId: String): List<FeedInfo> {
-        return emptyList()
+        val savedFeeds = redisTemplate.opsForZSet().reverseRange("feed:$userId", 0 , -1) ?: emptySet()
+        return savedFeeds.mapNotNull { feed ->
+            jsonUtil.fromJson(feed, FeedInfo::class.java)
+        }
     }
 
     fun likePost(userId: Long, postId: Long): Long? = redisTemplate.opsForSet().add("likes:$postId", userId.toString())
 
-    fun unlikePost(userId: Long, postId: Long): Long? = redisTemplate.opsForSet().remove("likes:$postId", userId.toString())
+    fun unlikePost(userId: Long, postId: Long): Long? =
+        redisTemplate.opsForSet().remove("likes:$postId", userId.toString())
 
-    fun isLikePost(userId: Long, postId: Long): Boolean = redisTemplate.opsForSet().isMember("likes:$postId", userId.toString()) ?: false
+    fun isLikePost(userId: Long, postId: Long): Boolean =
+        redisTemplate.opsForSet().isMember("likes:$postId", userId.toString()) ?: false
 
     fun countLikes(postId: Long) = redisTemplate.opsForSet().size("likes:$postId")
 
